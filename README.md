@@ -33,235 +33,158 @@ Un sistema web minimalista y elegante para gestionar los platos de comida que so
 
 ---
 
-## 🐧 Instalación en Arch Linux
+## � Configuración como Servidor en Windows
 
 ### 📋 Prerrequisitos
 
-```bash
-# Actualizar el sistema
-sudo pacman -Syu
+Ya tienes todo instalado, pero para verificar:
 
-# Instalar Node.js y npm
-sudo pacman -S nodejs npm
-
-# Verificar instalación
+```powershell
+# Verificar Node.js y npm
 node --version
 npm --version
+
+# Si no los tienes, descarga Node.js desde: https://nodejs.org/
 ```
 
-### 📂 Configuración del Proyecto
+### 🔧 Configuración para Laptop como Servidor
 
-#### 1. Clonar/Copiar el proyecto
-```bash
-# Crear directorio para el proyecto
-mkdir -p ~/residencia-platos
-cd ~/residencia-platos
+#### 1. Configurar Windows para funcionar con tapa cerrada
+```powershell
+# Abrir configuración de energía
+powercfg.cpl
 
-# Aquí copias todos los archivos del proyecto
+# O usar GUI: Panel de Control > Opciones de energía > Elegir el comportamiento del cierre de tapa
+# Configurar: "Al cerrar la tapa: No hacer nada"
 ```
 
-#### 2. Instalar dependencias del Backend
-```bash
-cd ~/residencia-platos/backend
+#### 2. Configurar para que no entre en suspensión
+```powershell
+# Configurar para que nunca entre en suspensión
+powercfg -change -standby-timeout-ac 0
+powercfg -change -standby-timeout-dc 0
+powercfg -change -hibernate-timeout-ac 0
+powercfg -change -hibernate-timeout-dc 0
 
-# Instalar dependencias
+# Configurar pantalla (opcional - puede apagarse)
+powercfg -change -monitor-timeout-ac 10
+powercfg -change -monitor-timeout-dc 10
+```
+
+#### 3. Instalar dependencias (si no están instaladas)
+```powershell
+# En el directorio backend
+cd backend
 npm install
 
-# Verificar que se instaló todo correctamente
-npm list --depth=0
-```
-
-#### 3. Instalar dependencias del Frontend
-```bash
-cd ~/residencia-platos/frontend
-
-# Instalar dependencias
+# En el directorio frontend  
+cd ..\frontend
 npm install
-
-# Verificar instalación
-npm list --depth=0
-```
-
-#### 4. Configurar base de datos
-```bash
-cd ~/residencia-platos/backend
-
-# La base de datos SQLite se crea automáticamente al iniciar
-# No necesitas configuración adicional
 ```
 
 ---
 
-## 🚀 Ejecución en Producción
+## 🚀 Ejecutar como Servidor Windows
 
-### 📘 Método 1: Ejecución Simple (Recomendado para pruebas)
+### 📘 Método 1: Scripts de PowerShell (Recomendado)
 
-**Terminal 1 - Backend:**
-```bash
-cd ~/residencia-platos/backend
-npm run start:dev
+#### Configuración inicial automática:
+```powershell
+# Ejecutar como ADMINISTRADOR (solo la primera vez)
+.\setup-windows-server.ps1
 ```
 
-**Terminal 2 - Frontend:**
-```bash
-cd ~/residencia-platos/frontend
-npm run dev -- --host
+#### Iniciar el servidor:
+```powershell
+# Opción 1: Script completo
+.\start-server.ps1
+
+# Opción 2: Script simple (doble clic)
+# Doble clic en: start-server.bat
 ```
 
-### 🔧 Método 2: Con PM2 (Recomendado para producción)
+### 🔧 Método 2: Como Servicio de Windows con PM2
 
-#### Instalar PM2:
-```bash
-sudo npm install -g pm2
+#### Instalar PM2 para Windows:
+```powershell
+# Instalar PM2 globalmente
+npm install -g pm2
+npm install -g pm2-windows-startup
+
+# Configurar PM2 para inicio automático
+pm2-startup install
 ```
 
 #### Configurar PM2:
-```bash
-cd ~/residencia-platos
-
-# Crear archivo de configuración PM2
-cat > ecosystem.config.js << 'EOF'
-module.exports = {
-  apps: [
-    {
-      name: 'residencia-backend',
-      cwd: './backend',
-      script: 'npm',
-      args: 'run start:prod',
-      env: {
-        NODE_ENV: 'production'
-      }
-    },
-    {
-      name: 'residencia-frontend',
-      cwd: './frontend',
-      script: 'npm',
-      args: 'run dev -- --host',
-      env: {
-        NODE_ENV: 'development'
-      }
-    }
-  ]
-};
-EOF
-
-# Compilar backend para producción
-cd backend
-npm run build
-
+```powershell
+# El archivo ecosystem.config.js ya está creado
 # Iniciar con PM2
-cd ..
 pm2 start ecosystem.config.js
-
-# Ver estado
-pm2 status
-
-# Ver logs
-pm2 logs
-
-# Guardar configuración PM2
 pm2 save
-pm2 startup
 ```
 
-### 🖥️ Método 3: Como Servicio del Sistema (systemd)
+### 🖥️ Método 3: Manual (dos terminales)
 
-#### Crear servicio para el backend:
-```bash
-sudo tee /etc/systemd/system/residencia-backend.service > /dev/null << 'EOF'
-[Unit]
-Description=Residencia Platos Backend
-After=network.target
-
-[Service]
-Type=simple
-User=tu_usuario
-WorkingDirectory=/home/tu_usuario/residencia-platos/backend
-ExecStart=/usr/bin/npm run start:prod
-Restart=always
-RestartSec=10
-Environment=NODE_ENV=production
-
-[Install]
-WantedBy=multi-user.target
-EOF
+#### Terminal 1 - Backend:
+```powershell
+cd backend
+npm run start:dev
 ```
 
-#### Crear servicio para el frontend:
-```bash
-sudo tee /etc/systemd/system/residencia-frontend.service > /dev/null << 'EOF'
-[Unit]
-Description=Residencia Platos Frontend
-After=network.target
-
-[Service]
-Type=simple
-User=tu_usuario
-WorkingDirectory=/home/tu_usuario/residencia-platos/frontend
-ExecStart=/usr/bin/npm run dev -- --host
-Restart=always
-RestartSec=10
-Environment=NODE_ENV=development
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-# Reemplaza "tu_usuario" con tu nombre de usuario real
-sudo systemctl daemon-reload
-sudo systemctl enable residencia-backend
-sudo systemctl enable residencia-frontend
-sudo systemctl start residencia-backend
-sudo systemctl start residencia-frontend
-
-# Verificar estado
-sudo systemctl status residencia-backend
-sudo systemctl status residencia-frontend
+#### Terminal 2 - Frontend:
+```powershell
+cd frontend
+npm run dev -- --host
 ```
 
 ---
 
-## 🌐 Configuración de Red
+## 🌐 Configuración de Red Windows
 
 ### 🔍 Encontrar tu IP:
-```bash
-# Método 1
-ip route | grep default
-ip addr show
+```powershell
+# Método 1 - Simple
+ipconfig | findstr "IPv4"
 
-# Método 2
-hostname -I
+# Método 2 - Más específico
+Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias "Wi-Fi*" | Select-Object IPAddress
 
-# Método 3
-ifconfig
+# Método 3 - PowerShell avanzado
+(Get-NetIPConfiguration | Where-Object {$_.IPv4DefaultGateway -ne $null}).IPv4Address.IPAddress
 ```
 
-### 🔥 Configurar Firewall (si está activo):
-```bash
-# Si usas ufw
-sudo ufw allow 3000
-sudo ufw allow 5173
+### 🔥 Configurar Firewall Windows:
+```powershell
+# Permitir puertos en el firewall (ejecutar como administrador)
+New-NetFirewallRule -DisplayName "Residencia Backend" -Direction Inbound -Protocol TCP -LocalPort 3000
+New-NetFirewallRule -DisplayName "Residencia Frontend" -Direction Inbound -Protocol TCP -LocalPort 5173
 
-# Si usas iptables
-sudo iptables -A INPUT -p tcp --dport 3000 -j ACCEPT
-sudo iptables -A INPUT -p tcp --dport 5173 -j ACCEPT
+# O usar GUI: Panel de Control > Sistema y Seguridad > Firewall de Windows Defender
+# Configuración avanzada > Reglas de entrada > Nueva regla > Puerto > TCP > 3000,5173
+```
 
-# Si usas firewalld
-sudo firewall-cmd --permanent --add-port=3000/tcp
-sudo firewall-cmd --permanent --add-port=5173/tcp
-sudo firewall-cmd --reload
+### 💤 Configurar para Laptop cerrada:
+```powershell
+# Configuración de energía para laptop cerrada
+# Panel de Control > Opciones de energía > Elegir el comportamiento del cierre de tapa
+# Configurar: "Al cerrar la tapa: No hacer nada" (tanto con batería como conectado)
+
+# También puedes usar:
+powercfg -setacvalueindex scheme_current 4f971e89-eebd-4455-a8de-9e59040e7347 5ca83367-6e45-459f-a27b-476b1d01c936 0
+powercfg -setdcvalueindex scheme_current 4f971e89-eebd-4455-a8de-9e59040e7347 5ca83367-6e45-459f-a27b-476b1d01c936 0
+powercfg -setactive scheme_current
 ```
 
 ---
 
-## 📱 Acceso desde Dispositivos
+##  Acceso desde Dispositivos
 
 ### 💻 Acceso Local:
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:3000
 
 ### 📱 Acceso desde Móvil/Otros Dispositivos:
-```bash
+```powershell
 # Tu IP será algo como: 192.168.1.100, 192.168.0.100, etc.
 # Frontend: http://TU-IP:5173
 # Backend API: http://TU-IP:3000
@@ -270,6 +193,200 @@ sudo firewall-cmd --reload
 #### Ejemplo:
 - Frontend: `http://192.168.1.100:5173`
 - Backend: `http://192.168.1.100:3000`
+
+---
+
+## 🛠️ Configuración del Proyecto
+
+### 📂 1. Instalación del Proyecto
+```powershell
+# Navegar al directorio del proyecto
+cd f:\CODING\Residencia\residencia-platos
+
+# Instalar dependencias del Backend
+cd .\backend
+npm install
+
+# Instalar dependencias del Frontend  
+cd ..\frontend
+npm install
+```
+
+### 📦 2. Configuración de Scripts de Automatización
+El proyecto incluye scripts para automatizar la configuración y ejecución:
+
+- `setup-windows-server.ps1` - Configuración automática del servidor
+- `start-server.ps1` - Inicio automatizado con detección de IP
+- `start-server.bat` - Inicio simple con doble clic
+
+### 🚀 3. Configuración Automática del Servidor
+```powershell
+# Ejecutar el script de configuración (ejecutar como Administrador)
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+.\setup-windows-server.ps1
+```
+
+Este script configurará automáticamente:
+- Configuración de energía para mantener la laptop activa
+- Reglas de firewall para los puertos 3000 y 5173  
+- Configuración de red para acceso externo
+
+---
+
+## 🚀 Ejecución del Servidor
+
+### 🎯 Método 1: Script Automatizado (Recomendado)
+```powershell
+# Ejecutar el script de inicio
+.\start-server.ps1
+```
+
+### 📱 Método 2: Inicio Simple
+```powershell
+# Doble clic en el archivo
+start-server.bat
+```
+
+### ⚙️ Método 3: Manual
+```powershell
+# Terminal 1 - Backend
+cd .\backend
+npm run start:dev
+
+# Terminal 2 - Frontend  
+cd .\frontend
+npm run dev -- --host 0.0.0.0
+```
+
+---
+
+## 🌐 Configuración de Red
+
+### 🔍 Encontrar tu IP en Windows:
+```powershell
+# Obtener IP de red local
+ipconfig | findstr "IPv4"
+
+# O más detallado
+Get-NetIPAddress -AddressFamily IPv4 | Where-Object {$_.IPAddress -like "192.168.*"}
+```
+
+### 🔥 Configuración de Firewall:
+```powershell
+# Los scripts automáticos ya configuran esto, pero manualmente:
+New-NetFirewallRule -DisplayName "Residencia Backend" -Direction Inbound -Protocol TCP -LocalPort 3000 -Action Allow
+New-NetFirewallRule -DisplayName "Residencia Frontend" -Direction Inbound -Protocol TCP -LocalPort 5173 -Action Allow
+```
+
+### ⚡ Configuración de Energía:
+```powershell
+# Configurar para mantener laptop activa (incluido en scripts)
+powercfg -change -monitor-timeout-ac 0
+powercfg -change -disk-timeout-ac 0  
+powercfg -change -standby-timeout-ac 0
+powercfg -change -hibernate-timeout-ac 0
+```
+
+---
+
+## 📊 Funciones del Sistema
+
+### 🕛 Reset Automático:
+- **Horario**: Todos los días a las 00:00 (medianoche)
+- **Función**: Limpia automáticamente todos los platos del día anterior
+- **Logs**: Se registra la actividad en la consola del servidor
+
+### 📈 Estadísticas Automáticas:
+- **Frecuencia**: Cada hora en punto
+- **Información**: Total de platos, platos reclamados, disponibles
+- **Visualización**: Solo en consola del servidor (para administración)
+
+### 🗂️ Gestión de Respaldos:
+- **Frecuencia**: Cada 6 horas
+- **Función**: Limpia respaldos antiguos automáticamente
+- **Retención**: Mantiene datos de utilidad para el sistema
+
+---
+
+## 🔧 Administración
+
+### 📋 Ver Logs en Tiempo Real:
+Los logs administrativos se muestran directamente en la consola donde ejecutes el servidor. Incluyen:
+- Registro de platos agregados
+- Registro de platos reclamados  
+- Estadísticas por hora
+- Proceso de limpieza automática
+
+### 🔄 Reiniciar el Sistema:
+```powershell
+# Detener el servidor (Ctrl+C en ambas terminales)
+# Luego ejecutar nuevamente:
+.\start-server.ps1
+```
+
+### 💾 Backup Manual de la Base de Datos:
+```powershell
+# La base de datos está en: .\backend\database.sqlite
+# Para hacer backup:
+copy .\backend\database.sqlite .\backup-$(Get-Date -Format "yyyy-MM-dd-HH-mm").sqlite
+```
+
+---
+
+## 📞 Soporte
+
+### 🐛 Problemas Comunes:
+
+**Error de puerto ocupado:**
+```powershell
+# Verificar qué está usando el puerto
+netstat -ano | findstr :3000
+netstat -ano | findstr :5173
+
+# Terminar proceso si es necesario
+taskkill /PID [número_de_proceso] /F
+```
+
+**No se puede acceder desde móvil:**
+1. Verificar que el firewall esté configurado
+2. Confirmar que estás en la misma red WiFi
+3. Usar la IP correcta mostrada por el script
+
+**El script no se ejecuta:**
+```powershell
+# Configurar política de ejecución
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+---
+
+## 📝 Estructura del Proyecto
+
+```
+residencia-platos/
+├── backend/                 # Servidor NestJS
+│   ├── src/                # Código fuente
+│   ├── database.sqlite     # Base de datos SQLite
+│   └── package.json        # Dependencias backend
+├── frontend/               # Cliente SvelteKit  
+│   ├── src/               # Código fuente frontend
+│   └── package.json       # Dependencias frontend
+├── setup-windows-server.ps1   # Script de configuración
+├── start-server.ps1           # Script de inicio automático
+├── start-server.bat          # Script de inicio simple
+└── README.md                 # Este archivo
+```
+
+---
+
+## 🎯 Uso del Sistema
+
+1. **Agregar platos**: Los usuarios pueden agregar platos con descripción, tipo de comida (almuerzo/cena)
+2. **Reclamar platos**: Otros usuarios pueden reclamar platos disponibles ingresando su nombre
+3. **Ver estado**: El panel muestra el progreso del día con contadores automáticos
+4. **Acceso móvil**: Funciona desde cualquier dispositivo en la misma red WiFi
+
+¡El sistema está listo para funcionar 24/7 en tu laptop con Windows! 🚀
 
 ---
 
