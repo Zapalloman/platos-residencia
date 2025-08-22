@@ -121,7 +121,44 @@ taskkill /PID [NUMERO_PROCESO] /F
 
 ---
 
-### ❌ **Problema 6: "Firewall bloquea conexiones"**
+### ❌ **Problema 6: "Al cerrar la tapa, el servidor se detiene"**
+
+**Síntomas:**
+- Servidor funciona con tapa abierta
+- Al cerrar la tapa, se pierde conexión
+- Sistema entra en suspensión
+
+**Soluciones:**
+
+#### Solución A: Script Automático (Recomendado)
+```cmd
+# Ejecutar como Administrador:
+setup-laptop-server.bat
+
+# O en PowerShell:
+.\setup-laptop-server.ps1
+```
+
+#### Solución B: Configuración Manual
+```cmd
+# 1. Configurar acción de tapa cerrada:
+powercfg -setacvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 5ca83367-6e45-459f-a27b-476b1d01c936 0
+powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 5ca83367-6e45-459f-a27b-476b1d01c936 0
+powercfg -SetActive SCHEME_CURRENT
+
+# 2. Verificar configuración:
+powercfg -query SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 5ca83367-6e45-459f-a27b-476b1d01c936
+```
+
+#### Solución C: Configuración por Interfaz
+1. Panel de Control → Opciones de energía
+2. Cambiar la configuración del plan → Cambiar configuración avanzada
+3. Botones de alimentación y tapa → Acción de cierre de tapa
+4. Establecer "No hacer nada" en AC y Batería
+
+---
+
+### ❌ **Problema 7: "Firewall bloquea conexiones"**
 
 **Síntomas:**
 - No se puede acceder desde móvil

@@ -231,6 +231,23 @@ Este script configurará automáticamente:
 - Reglas de firewall para los puertos 3000 y 5173  
 - Configuración de red para acceso externo
 
+### 🔒 4. Configuración Especial para Laptop como Servidor 24/7
+```powershell
+# IMPORTANTE: Para que funcione con la tapa cerrada
+# Ejecutar como Administrador:
+.\setup-laptop-server.ps1
+
+# O la versión batch:
+# Click derecho > "Ejecutar como administrador"
+setup-laptop-server.bat
+```
+
+**⚠️ CRÍTICO para uso 24/7:**
+- ✅ Configura la laptop para NO suspenderse al cerrar la tapa
+- ✅ Deshabilita la suspensión de tarjetas de red
+- ✅ Evita reinicios automáticos por actualizaciones
+- ✅ Optimiza energía para funcionamiento continuo
+
 ---
 
 ## 🚀 Ejecución del Servidor
@@ -286,6 +303,47 @@ powercfg -change -disk-timeout-ac 0
 powercfg -change -standby-timeout-ac 0
 powercfg -change -hibernate-timeout-ac 0
 ```
+
+---
+
+## 🔒 Configuración para Servidor 24/7 (Tapa Cerrada)
+
+### ⚠️ **PROBLEMA COMÚN:** 
+*"Al cerrar la tapa de la laptop, el servidor deja de funcionar"*
+
+### ✅ **SOLUCIÓN:**
+
+#### 🎯 **Opción 1: Script Automático (Recomendado)**
+```powershell
+# Ejecutar como Administrador:
+.\setup-laptop-server.ps1
+```
+
+#### 🎯 **Opción 2: Configuración Manual**
+1. **Configurar energía:**
+   - Panel de Control → Opciones de energía
+   - Cambiar la configuración del plan
+   - Cambiar configuración avanzada de energía
+   - Botones de alimentación y tapa → Acción de cierre de tapa
+   - Establecer en "No hacer nada" (tanto AC como Batería)
+
+2. **Configurar adaptador de red:**
+   - Administrador de dispositivos
+   - Adaptadores de red → Tu adaptador WiFi
+   - Propiedades → Administración de energía
+   - Desmarcar "Permitir que el equipo apague este dispositivo"
+
+### 🎉 **Resultado:**
+- ✅ Laptop funciona 24/7 con tapa cerrada
+- ✅ Mantiene conexión WiFi activa
+- ✅ Servidor accesible desde móviles
+- ✅ Sistema se reinicia automáticamente cada día
+
+### 💡 **Recomendaciones Adicionales:**
+- 🔌 Mantén la laptop siempre conectada al cargador
+- 🌡️ Asegúrate de que tenga buena ventilación
+- 📱 Prueba el acceso desde móvil antes de cerrar la tapa
+- 🔄 El sistema se reinicia automáticamente a las 00:00
 
 ---
 
